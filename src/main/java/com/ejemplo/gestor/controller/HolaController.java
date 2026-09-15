@@ -29,4 +29,5 @@ public class HolaController {
     public String resumen() {
         return "Esta aplicación gestionará los préstamos de material";
     }
+    
 }
