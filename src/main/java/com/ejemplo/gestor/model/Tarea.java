@@ -1,5 +1,7 @@
 package com.ejemplo.gestor.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 public class Tarea {
 
     private int id;
@@ -7,6 +9,7 @@ public class Tarea {
     private String prioridad;
     private boolean completada;
 
+    @JsonCreator
     public Tarea() {
     }
 
