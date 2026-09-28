@@ -1,9 +1,9 @@
 package com.ejemplo.gestor.controller;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.ejemplo.gestor.model.Proyecto;
 
@@ -22,6 +23,7 @@ import com.ejemplo.gestor.model.Proyecto;
 public class ProyectoController {
 
     private final List<Proyecto> proyectos = new ArrayList<>();
+    private int siguienteId = 1;
 
     @GetMapping
     public List<Proyecto> lista() {
@@ -35,17 +37,23 @@ public class ProyectoController {
                 return ResponseEntity.ok(proyecto);
             }
         }
+
         return ResponseEntity.notFound().build();
     }
 
-    @PostMapping
+    @PostMapping(consumes = "application/json", produces = "application/json")
     public ResponseEntity<Proyecto> crear(@RequestBody Proyecto proyecto) {
+        proyecto.setId(siguienteId);
+        siguienteId = siguienteId + 1;
         proyectos.add(proyecto);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .header("Location", "/proyectos/" + proyecto.getId())
-                .body(proyecto);
+        URI ubicacion = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(proyecto.getId())
+                .toUri();
+
+        return ResponseEntity.created(ubicacion).body(proyecto);
     }
 
     @PutMapping("/{id}")
@@ -53,14 +61,12 @@ public class ProyectoController {
             @PathVariable(name = "id") int id,
             @RequestBody Proyecto cambios) {
 
-        for (Proyecto proyecto : proyectos) {
-            if (proyecto.getId() == id) {
-                proyecto.setNombre(cambios.getNombre());
-                proyecto.setDescripcion(cambios.getDescripcion());
-                proyecto.setActivo(cambios.isActivo());
-                proyecto.setNumeroDeIncidencias(cambios.getNumeroDeIncidencias());
+        for (int i = 0; i < proyectos.size(); i++) {
+            if (proyectos.get(i).getId() == id) {
+                cambios.setId(id);
+                proyectos.set(i, cambios);
 
-                return ResponseEntity.ok(proyecto);
+                return ResponseEntity.ok(cambios);
             }
         }
 
@@ -83,8 +89,6 @@ public class ProyectoController {
                     proyecto.setDescripcion(cambios.getDescripcion());
                 }
 
-                proyecto.setActivo(cambios.isActivo());
-
                 return ResponseEntity.ok(proyecto);
             }
         }
@@ -93,15 +97,8 @@ public class ProyectoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> borrar(@PathVariable(name = "id") int id) {
-
-        for (Proyecto proyecto : proyectos) {
-            if (proyecto.getId() == id) {
-                proyectos.remove(proyecto);
-                return ResponseEntity.noContent().build();
-            }
-        }
-
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<Void> eliminar(@PathVariable(name = "id") int id) {
+        proyectos.removeIf(proyecto -> proyecto.getId() == id);
+        return ResponseEntity.noContent().build();
     }
 }
