@@ -1,7 +1,6 @@
 package com.ejemplo.gestor.controller;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -16,14 +15,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.ejemplo.gestor.memoria.MemoriaProyecto;
 import com.ejemplo.gestor.model.Tarea;
 
 @RestController
 @RequestMapping("/tareas")
 public class TareaController {
 
-    private final List<Tarea> tareas = new ArrayList<>();
+    private final List<Tarea> tareas;
     private int siguienteId = 1;
+
+    public TareaController(MemoriaProyecto memoria) {
+        this.tareas = memoria.getTareas();
+    }
 
     @GetMapping
     public List<Tarea> lista() {

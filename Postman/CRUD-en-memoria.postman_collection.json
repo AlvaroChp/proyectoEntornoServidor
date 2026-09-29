@@ -1,0 +1,548 @@
+{
+	"info": {
+		"_postman_id": "444d47d4-b5d6-4ca2-a446-374202b77cf0",
+		"name": "CRUD en memoria",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "58406545"
+	},
+	"item": [
+		{
+			"name": "Tareas",
+			"item": [
+				{
+					"name": "Listar tareas",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"La respuesta es 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"La respuesta contiene una lista\", function () {",
+									"    pm.expect(pm.response.json()).to.be.an(\"array\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tareas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tareas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Crear tarea",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"La respuesta es 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"La respuesta tiene cabecera Location\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Location\")).to.not.be.null;",
+									"});",
+									"",
+									"pm.test(\"La respuesta contiene la tarea\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property(\"id\");",
+									"    pm.expect(pm.response.json().titulo).to.eql(\"Tarea de prueba\");",
+									"});",
+									"",
+									"pm.collectionVariables.set(\"tareaId\", pm.response.json().id);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"titulo\": \"Tarea de prueba\",\n    \"prioridad\": \"alta\",\n    \"completada\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tareas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tareas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Consultar tarea",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"La respuesta es 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Es la tarea creada\", function () {",
+									"    pm.expect(pm.response.json().id).to.eql(Number(pm.environment.get(\"tareaId\")));",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tareas/{{tareaId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tareas",
+								"{{tareaId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Modificar tarea",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"La respuesta es 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"La tarea se ha modificado\", function () {",
+									"    pm.expect(pm.response.json().id).to.eql(Number(pm.environment.get(\"tareaId\")));",
+									"    pm.expect(pm.response.json().titulo).to.eql(\"Tarea modificada\");",
+									"    pm.expect(pm.response.json().prioridad).to.eql(\"media\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"titulo\": \"Tarea modificada\",\n    \"prioridad\": \"media\",\n    \"completada\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tareas/{{tareaId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tareas",
+								"{{tareaId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Modificar parcialmente tarea",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"titulo\": \"Tarea modificada parcialmente\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tareas/{{tareaId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tareas",
+								"{{tareaId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar tarea",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"La respuesta es 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									"",
+									"pm.test(\"La respuesta no tiene cuerpo\", function () {",
+									"    pm.expect(pm.response.text()).to.eql(\"\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tareas/{{tareaId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tareas",
+								"{{tareaId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Proyectos",
+			"item": [
+				{
+					"name": "Crear proyecto",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"La respuesta es 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"La respuesta tiene cabecera Location\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Location\")).to.not.be.null;",
+									"});",
+									"",
+									"pm.test(\"La respuesta contiene el proyecto\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property(\"id\");",
+									"    pm.expect(pm.response.json().nombre).to.eql(\"Proyecto de prueba\");",
+									"});",
+									"",
+									"pm.collectionVariables.set(\"proyectoId\", pm.response.json().id);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Proyecto de prueba\",\n    \"descripcion\": \"Proyecto para probar el CRUD\",\n    \"activo\": true,\n    \"numeroDeIncidencias\": 0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/proyectos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"proyectos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar proyectos",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"La respuesta es 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"La respuesta contiene una lista\", function () {",
+									"    pm.expect(pm.response.json()).to.be.an(\"array\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/proyectos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"proyectos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Consultar proyecto",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"La respuesta es 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Es el proyecto creado\", function () {",
+									"    pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get(\"proyectoId\")));",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/proyectos/{{proyectoId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"proyectos",
+								"{{proyectoId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Modificar proyecto",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"La respuesta es 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"El proyecto se ha modificado\", function () {",
+									"    pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get(\"proyectoId\")));",
+									"    pm.expect(pm.response.json().nombre).to.eql(\"Proyecto modificado\");",
+									"    pm.expect(pm.response.json().descripcion).to.eql(\"Descripción modificada\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Proyecto modificado\",\n    \"descripcion\": \"Descripción modificada\",\n    \"activo\": false,\n    \"numeroDeIncidencias\": 5\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/proyectos/{{proyectoId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"proyectos",
+								"{{proyectoId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Modificar parcialmente proyecto",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"La respuesta es 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"El proyecto se ha modificado parcialmente\", function () {",
+									"    pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get(\"proyectoId\")));",
+									"    pm.expect(pm.response.json().nombre).to.eql(\"Proyecto modificado parcialmente\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Proyecto modificado parcialmente\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/proyectos/{{proyectoId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"proyectos",
+								"{{proyectoId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar proyecto",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"La respuesta es 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									"",
+									"pm.test(\"La respuesta no tiene cuerpo\", function () {",
+									"    pm.expect(pm.response.text()).to.eql(\"\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/proyectos/{{proyectoId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"proyectos",
+								"{{proyectoId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "tareaId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "proyectoId",
+			"value": ""
+		}
+	]
+}
