@@ -16,14 +16,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.ejemplo.gestor.memoria.MemoriaProyecto;
 import com.ejemplo.gestor.model.Proyecto;
+import com.ejemplo.gestor.model.Tarea;
 
 @RestController
 @RequestMapping("/proyectos")
 public class ProyectoController {
 
-    private final List<Proyecto> proyectos = new ArrayList<>();
+    private final List<Proyecto> proyectos;
+    private final List<Tarea> tareas;
     private int siguienteId = 1;
+
+    public ProyectoController(MemoriaProyecto memoria) {
+        this.proyectos = memoria.getProyectos();
+        this.tareas = memoria.getTareas();
+    }
 
     @GetMapping
     public List<Proyecto> lista() {
@@ -94,6 +102,33 @@ public class ProyectoController {
         }
 
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/{id}/tareas")
+    public ResponseEntity<List<Tarea>> tareasDelProyecto(
+            @PathVariable(name = "id") int id) {
+        boolean existe = false;
+
+        for (Proyecto proyecto : proyectos) {
+            if (proyecto.getId() == id) {
+                existe = true;
+                break;
+            }
+        }
+
+        if (!existe) {
+            return ResponseEntity.notFound().build();
+        }
+
+        List<Tarea> resultado = new ArrayList<>();
+
+        for (Tarea tarea : tareas) {
+            if (tarea.getProyectoId() == id) {
+                resultado.add(tarea);
+            }
+        }
+
+        return ResponseEntity.ok(resultado);
     }
 
     @DeleteMapping("/{id}")
