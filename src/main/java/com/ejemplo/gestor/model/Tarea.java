@@ -9,6 +9,7 @@ public class Tarea {
     private String prioridad;
     private boolean completada;
     private int proyectoId;
+    private String notaInterna = "pendiente de revisión interna";
 
     @JsonCreator
     public Tarea() {
@@ -59,5 +60,9 @@ public class Tarea {
 
     public void setProyectoId(int proyectoId) {
         this.proyectoId = proyectoId;
+    }
+
+    public String getNotaInterna() {
+    return notaInterna;
     }
 }

@@ -15,38 +15,51 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.ejemplo.gestor.dto.TareaResponse;
 import com.ejemplo.gestor.memoria.MemoriaProyecto;
+import com.ejemplo.gestor.model.Proyecto;
 import com.ejemplo.gestor.model.Tarea;
 
 @RestController
-@RequestMapping("/tareas")
+@RequestMapping
 public class TareaController {
 
     private final List<Tarea> tareas;
+    private final List<Proyecto> proyectos;
     private int siguienteId = 1;
 
     public TareaController(MemoriaProyecto memoria) {
         this.tareas = memoria.getTareas();
+        this.proyectos = memoria.getProyectos();
     }
 
-    @GetMapping
-    public List<Tarea> lista() {
-        return tareas;
+    @GetMapping("/tareas")
+    public List<TareaResponse> lista() {
+        return tareas.stream()
+                .map(TareaResponse::desde)
+                .toList();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Tarea> detalle(@PathVariable(name = "id") int id) {
+    @GetMapping("/tareas/{id}")
+    public ResponseEntity<TareaResponse> detalle(
+            @PathVariable(name = "id") int id) {
+
         for (Tarea tarea : tareas) {
             if (tarea.getId() == id) {
-                return ResponseEntity.ok(tarea);
+                return ResponseEntity.ok(TareaResponse.desde(tarea));
             }
         }
 
         return ResponseEntity.notFound().build();
     }
 
-    @PostMapping(consumes = "application/json", produces = "application/json")
-    public ResponseEntity<Tarea> crear(@RequestBody Tarea tarea) {
+    @PostMapping(
+            value = "/tareas",
+            consumes = "application/json",
+            produces = "application/json")
+    public ResponseEntity<TareaResponse> crear(
+            @RequestBody Tarea tarea) {
+
         tarea.setId(siguienteId);
         siguienteId = siguienteId + 1;
         tareas.add(tarea);
@@ -57,11 +70,12 @@ public class TareaController {
                 .buildAndExpand(tarea.getId())
                 .toUri();
 
-        return ResponseEntity.created(ubicacion).body(tarea);
+        return ResponseEntity.created(ubicacion)
+                .body(TareaResponse.desde(tarea));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Tarea> modificarCompleta(
+    @PutMapping("/tareas/{id}")
+    public ResponseEntity<TareaResponse> modificarCompleta(
             @PathVariable(name = "id") int id,
             @RequestBody Tarea cambios) {
 
@@ -70,15 +84,15 @@ public class TareaController {
                 cambios.setId(id);
                 tareas.set(i, cambios);
 
-                return ResponseEntity.ok(cambios);
+                return ResponseEntity.ok(TareaResponse.desde(cambios));
             }
         }
 
         return ResponseEntity.notFound().build();
     }
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<Tarea> modificar(
+    @PatchMapping("/tareas/{id}")
+    public ResponseEntity<TareaResponse> modificar(
             @PathVariable(name = "id") int id,
             @RequestBody Tarea cambios) {
 
@@ -93,15 +107,52 @@ public class TareaController {
                     tarea.setPrioridad(cambios.getPrioridad());
                 }
 
-                return ResponseEntity.ok(tarea);
+                return ResponseEntity.ok(TareaResponse.desde(tarea));
             }
         }
 
         return ResponseEntity.notFound().build();
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable(name = "id") int id) {
+    @PostMapping(
+            value = "/proyectos/{proyectoId}/tareas",
+            consumes = "application/json",
+            produces = "application/json")
+    public ResponseEntity<TareaResponse> crearEnProyecto(
+            @PathVariable(name = "proyectoId") int proyectoId,
+            @RequestBody Tarea nueva) {
+
+        boolean existe = false;
+
+        for (Proyecto proyecto : proyectos) {
+            if (proyecto.getId() == proyectoId) {
+                existe = true;
+                break;
+            }
+        }
+
+        if (!existe) {
+            return ResponseEntity.notFound().build();
+        }
+
+        nueva.setId(siguienteId++);
+        nueva.setProyectoId(proyectoId);
+        tareas.add(nueva);
+
+        URI ubicacion = ServletUriComponentsBuilder
+                .fromCurrentContextPath()
+                .path("/tareas/{id}")
+                .buildAndExpand(nueva.getId())
+                .toUri();
+
+        return ResponseEntity.created(ubicacion)
+                .body(TareaResponse.desde(nueva));
+    }
+
+    @DeleteMapping("/tareas/{id}")
+    public ResponseEntity<Void> eliminar(
+            @PathVariable(name = "id") int id) {
+
         tareas.removeIf(tarea -> tarea.getId() == id);
         return ResponseEntity.noContent().build();
     }

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.ejemplo.gestor.dto.TareaResponse;
 import com.ejemplo.gestor.memoria.MemoriaProyecto;
 import com.ejemplo.gestor.model.Proyecto;
 import com.ejemplo.gestor.model.Tarea;
@@ -105,7 +106,7 @@ public class ProyectoController {
     }
 
     @GetMapping("/{id}/tareas")
-    public ResponseEntity<List<Tarea>> tareasDelProyecto(
+    public ResponseEntity<List<TareaResponse>> tareasDelProyecto(
             @PathVariable(name = "id") int id) {
         boolean existe = false;
 
@@ -120,11 +121,11 @@ public class ProyectoController {
             return ResponseEntity.notFound().build();
         }
 
-        List<Tarea> resultado = new ArrayList<>();
+        List<TareaResponse> resultado = new ArrayList<>();
 
         for (Tarea tarea : tareas) {
             if (tarea.getProyectoId() == id) {
-                resultado.add(tarea);
+                resultado.add(TareaResponse.desde(tarea));
             }
         }
 
