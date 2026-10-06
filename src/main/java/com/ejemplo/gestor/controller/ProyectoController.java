@@ -16,10 +16,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.ejemplo.gestor.dto.ProyectoPatchRequest;
+import com.ejemplo.gestor.dto.ProyectoRequest;
 import com.ejemplo.gestor.dto.TareaResponse;
 import com.ejemplo.gestor.memoria.MemoriaProyecto;
 import com.ejemplo.gestor.model.Proyecto;
 import com.ejemplo.gestor.model.Tarea;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/proyectos")
@@ -51,7 +55,15 @@ public class ProyectoController {
     }
 
     @PostMapping(consumes = "application/json", produces = "application/json")
-    public ResponseEntity<Proyecto> crear(@RequestBody Proyecto proyecto) {
+    public ResponseEntity<Proyecto> crear(
+            @Valid @RequestBody ProyectoRequest peticion) {
+
+        Proyecto proyecto = new Proyecto();
+        proyecto.setNombre(peticion.getNombre());
+        proyecto.setDescripcion(peticion.getDescripcion());
+        proyecto.setActivo(peticion.isActivo());
+        proyecto.setNumeroDeIncidencias(peticion.getNumeroDeIncidencias());
+
         proyecto.setId(siguienteId);
         siguienteId = siguienteId + 1;
         proyectos.add(proyecto);
@@ -68,11 +80,18 @@ public class ProyectoController {
     @PutMapping("/{id}")
     public ResponseEntity<Proyecto> modificarCompleta(
             @PathVariable(name = "id") int id,
-            @RequestBody Proyecto cambios) {
+            @Valid @RequestBody ProyectoRequest peticion) {
 
         for (int i = 0; i < proyectos.size(); i++) {
             if (proyectos.get(i).getId() == id) {
+
+                Proyecto cambios = new Proyecto();
                 cambios.setId(id);
+                cambios.setNombre(peticion.getNombre());
+                cambios.setDescripcion(peticion.getDescripcion());
+                cambios.setActivo(peticion.isActivo());
+                cambios.setNumeroDeIncidencias(peticion.getNumeroDeIncidencias());
+
                 proyectos.set(i, cambios);
 
                 return ResponseEntity.ok(cambios);
@@ -85,7 +104,7 @@ public class ProyectoController {
     @PatchMapping("/{id}")
     public ResponseEntity<Proyecto> modificarParcial(
             @PathVariable(name = "id") int id,
-            @RequestBody Proyecto cambios) {
+            @Valid @RequestBody ProyectoPatchRequest cambios) {
 
         for (Proyecto proyecto : proyectos) {
             if (proyecto.getId() == id) {
@@ -108,6 +127,7 @@ public class ProyectoController {
     @GetMapping("/{id}/tareas")
     public ResponseEntity<List<TareaResponse>> tareasDelProyecto(
             @PathVariable(name = "id") int id) {
+
         boolean existe = false;
 
         for (Proyecto proyecto : proyectos) {
