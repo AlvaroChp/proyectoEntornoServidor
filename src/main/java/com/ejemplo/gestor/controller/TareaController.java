@@ -15,10 +15,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.ejemplo.gestor.dto.TareaRequest;
 import com.ejemplo.gestor.dto.TareaResponse;
 import com.ejemplo.gestor.memoria.MemoriaProyecto;
 import com.ejemplo.gestor.model.Proyecto;
 import com.ejemplo.gestor.model.Tarea;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping
@@ -58,7 +61,16 @@ public class TareaController {
             consumes = "application/json",
             produces = "application/json")
     public ResponseEntity<TareaResponse> crear(
-            @RequestBody Tarea tarea) {
+            @Valid @RequestBody TareaRequest peticion) {
+
+        Tarea tarea = new Tarea();
+        tarea.setTitulo(peticion.getTitulo());
+        tarea.setPrioridad(peticion.getPrioridad());
+        tarea.setProyectoId(peticion.getProyectoId());
+
+        if (peticion.getCompletada() != null) {
+            tarea.setCompletada(peticion.getCompletada());
+        }
 
         tarea.setId(siguienteId);
         siguienteId = siguienteId + 1;
@@ -77,11 +89,21 @@ public class TareaController {
     @PutMapping("/tareas/{id}")
     public ResponseEntity<TareaResponse> modificarCompleta(
             @PathVariable(name = "id") int id,
-            @RequestBody Tarea cambios) {
+            @Valid @RequestBody TareaRequest peticion) {
 
         for (int i = 0; i < tareas.size(); i++) {
             if (tareas.get(i).getId() == id) {
+
+                Tarea cambios = new Tarea();
                 cambios.setId(id);
+                cambios.setTitulo(peticion.getTitulo());
+                cambios.setPrioridad(peticion.getPrioridad());
+                cambios.setProyectoId(peticion.getProyectoId());
+
+                if (peticion.getCompletada() != null) {
+                    cambios.setCompletada(peticion.getCompletada());
+                }
+
                 tareas.set(i, cambios);
 
                 return ResponseEntity.ok(TareaResponse.desde(cambios));
