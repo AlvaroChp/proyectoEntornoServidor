@@ -1,3 +1,4 @@
+
 package com.ejemplo.gestor.dto;
 
 import jakarta.validation.constraints.NotBlank;
@@ -8,16 +9,16 @@ import jakarta.validation.constraints.Size;
 
 public class TareaRequest {
 
-    @NotBlank
-    @Size(min = 3, max = 120)
+    @NotBlank(message = "Es obligatorio añadir un título a la tarea")
+    @Size(min = 3, max = 120, message = "El título debe tener entre 3 y 120 caracteres")
     private String titulo;
 
-    @NotNull
-    @Pattern(regexp = "baja|media|alta")
+    @NotNull(message = "Hay que asignar una prioridad")
+    @Pattern(regexp = "baja|media|alta", message = "La prioridad tiene que serbaja, media o alta")
     private String prioridad;
 
-    @NotNull
-    @Positive
+    @NotNull(message = "Todas las tareas deben pertenecer a un proyecto")
+    @Positive(message = "El identificador tiene que ser un número positivo")
     private Integer proyectoId;
 
     private Boolean completada;
