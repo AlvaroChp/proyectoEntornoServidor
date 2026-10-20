@@ -1,6 +1,5 @@
-package com.ejemplo.gestor.dto;
 
-import com.ejemplo.gestor.model.Tarea;
+package com.ejemplo.gestor.dto;
 
 public record TareaResponse(
         int id,
@@ -8,13 +7,4 @@ public record TareaResponse(
         String prioridad,
         boolean completada,
         int proyectoId) {
-
-    public static TareaResponse desde(Tarea tarea) {
-        return new TareaResponse(
-                tarea.getId(),
-                tarea.getTitulo(),
-                tarea.getPrioridad(),
-                tarea.isCompletada(),
-                tarea.getProyectoId());
-    }
 }

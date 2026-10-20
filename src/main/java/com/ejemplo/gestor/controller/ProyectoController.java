@@ -2,7 +2,6 @@
 package com.ejemplo.gestor.controller;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -19,9 +18,12 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.ejemplo.gestor.dto.ProyectoPatchRequest;
 import com.ejemplo.gestor.dto.ProyectoRequest;
+import com.ejemplo.gestor.dto.ProyectoResponse;
 import com.ejemplo.gestor.dto.TareaResponse;
 import com.ejemplo.gestor.error.ConflictoException;
 import com.ejemplo.gestor.error.RecursoNoEncontradoException;
+import com.ejemplo.gestor.mapper.ProyectoMapper;
+import com.ejemplo.gestor.mapper.TareaMapper;
 import com.ejemplo.gestor.memoria.MemoriaProyecto;
 import com.ejemplo.gestor.model.Proyecto;
 import com.ejemplo.gestor.model.Tarea;
@@ -34,11 +36,18 @@ public class ProyectoController {
 
     private final List<Proyecto> proyectos;
     private final List<Tarea> tareas;
+    private final ProyectoMapper proyectoMapper;
+    private final TareaMapper tareaMapper;
     private int siguienteId = 1;
 
-    public ProyectoController(MemoriaProyecto memoria) {
+    public ProyectoController(
+            MemoriaProyecto memoria,
+            ProyectoMapper proyectoMapper,
+            TareaMapper tareaMapper) {
         this.proyectos = memoria.getProyectos();
         this.tareas = memoria.getTareas();
+        this.proyectoMapper = proyectoMapper;
+        this.tareaMapper = tareaMapper;
     }
 
     private Proyecto buscar(int id) {
@@ -62,23 +71,25 @@ public class ProyectoController {
     }
 
     @GetMapping
-    public List<Proyecto> lista() {
-        return proyectos;
+    public List<ProyectoResponse> lista() {
+        return proyectos.stream()
+                .map(proyectoMapper::aResponse)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public Proyecto detalle(@PathVariable(name = "id") int id) {
+    public ProyectoResponse detalle(@PathVariable(name = "id") int id) {
         Proyecto proyecto = buscar(id);
 
         if (proyecto == null) {
             throw new RecursoNoEncontradoException("proyecto", id);
         }
 
-        return proyecto;
+        return proyectoMapper.aResponse(proyecto);
     }
 
     @PostMapping(consumes = "application/json", produces = "application/json")
-    public ResponseEntity<Proyecto> crear(
+    public ResponseEntity<ProyectoResponse> crear(
             @Valid @RequestBody ProyectoRequest peticion) {
 
         comprobarNombreDuplicado(peticion.getNombre(), -1);
@@ -101,11 +112,12 @@ public class ProyectoController {
                 .buildAndExpand(proyecto.getId())
                 .toUri();
 
-        return ResponseEntity.created(ubicacion).body(proyecto);
+        return ResponseEntity.created(ubicacion)
+                .body(proyectoMapper.aResponse(proyecto));
     }
 
     @PutMapping("/{id}")
-    public Proyecto modificarCompleta(
+    public ProyectoResponse modificarCompleta(
             @PathVariable(name = "id") int id,
             @Valid @RequestBody ProyectoRequest peticion) {
 
@@ -129,11 +141,11 @@ public class ProyectoController {
         int indice = proyectos.indexOf(existente);
         proyectos.set(indice, cambios);
 
-        return cambios;
+        return proyectoMapper.aResponse(cambios);
     }
 
     @PatchMapping("/{id}")
-    public Proyecto modificarParcial(
+    public ProyectoResponse modificarParcial(
             @PathVariable(name = "id") int id,
             @Valid @RequestBody ProyectoPatchRequest cambios) {
 
@@ -152,7 +164,7 @@ public class ProyectoController {
             proyecto.setDescripcion(cambios.getDescripcion());
         }
 
-        return proyecto;
+        return proyectoMapper.aResponse(proyecto);
     }
 
     @GetMapping("/{id}/tareas")
@@ -165,15 +177,10 @@ public class ProyectoController {
             throw new RecursoNoEncontradoException("proyecto", id);
         }
 
-        List<TareaResponse> resultado = new ArrayList<>();
-
-        for (Tarea tarea : tareas) {
-            if (tarea.getProyectoId() == id) {
-                resultado.add(TareaResponse.desde(tarea));
-            }
-        }
-
-        return resultado;
+        return tareas.stream()
+                .filter(tarea -> tarea.getProyectoId() == id)
+                .map(tareaMapper::aResponse)
+                .toList();
     }
 
     @DeleteMapping("/{id}")
