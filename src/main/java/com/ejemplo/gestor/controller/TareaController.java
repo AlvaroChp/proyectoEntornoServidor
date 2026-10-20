@@ -20,6 +20,7 @@ import com.ejemplo.gestor.dto.TareaPatchRequest;
 import com.ejemplo.gestor.dto.TareaRequest;
 import com.ejemplo.gestor.dto.TareaResponse;
 import com.ejemplo.gestor.error.RecursoNoEncontradoException;
+import com.ejemplo.gestor.mapper.TareaMapper;
 import com.ejemplo.gestor.memoria.MemoriaProyecto;
 import com.ejemplo.gestor.model.Proyecto;
 import com.ejemplo.gestor.model.Tarea;
@@ -32,11 +33,15 @@ public class TareaController {
 
     private final List<Tarea> tareas;
     private final List<Proyecto> proyectos;
+    private final TareaMapper tareaMapper;
     private int siguienteId = 1;
 
-    public TareaController(MemoriaProyecto memoria) {
+    public TareaController(
+            MemoriaProyecto memoria,
+            TareaMapper tareaMapper) {
         this.tareas = memoria.getTareas();
         this.proyectos = memoria.getProyectos();
+        this.tareaMapper = tareaMapper;
     }
 
     private Tarea buscar(int id) {
@@ -62,7 +67,7 @@ public class TareaController {
     @GetMapping("/tareas")
     public List<TareaResponse> lista() {
         return tareas.stream()
-                .map(TareaResponse::desde)
+                .map(tareaMapper::aResponse)
                 .toList();
     }
 
@@ -76,7 +81,7 @@ public class TareaController {
             throw new RecursoNoEncontradoException("tarea", id);
         }
 
-        return TareaResponse.desde(tarea);
+        return tareaMapper.aResponse(tarea);
     }
 
     @PostMapping(
@@ -111,7 +116,7 @@ public class TareaController {
                 .toUri();
 
         return ResponseEntity.created(ubicacion)
-                .body(TareaResponse.desde(tarea));
+                .body(tareaMapper.aResponse(tarea));
     }
 
     @PutMapping("/tareas/{id}")
@@ -143,7 +148,7 @@ public class TareaController {
         int indice = tareas.indexOf(existente);
         tareas.set(indice, cambios);
 
-        return TareaResponse.desde(cambios);
+        return tareaMapper.aResponse(cambios);
     }
 
     @PatchMapping("/tareas/{id}")
@@ -165,7 +170,7 @@ public class TareaController {
             tarea.setPrioridad(cambios.getPrioridad());
         }
 
-        return TareaResponse.desde(tarea);
+        return tareaMapper.aResponse(tarea);
     }
 
     @PostMapping(
@@ -201,7 +206,7 @@ public class TareaController {
                 .toUri();
 
         return ResponseEntity.created(ubicacion)
-                .body(TareaResponse.desde(nueva));
+                .body(tareaMapper.aResponse(nueva));
     }
 
     @DeleteMapping("/tareas/{id}")

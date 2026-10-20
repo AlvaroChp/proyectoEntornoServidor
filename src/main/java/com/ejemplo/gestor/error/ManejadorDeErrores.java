@@ -11,9 +11,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -31,6 +34,18 @@ public class ManejadorDeErrores {
         return construir(
                 HttpStatus.NOT_FOUND,
                 ex.getMessage(),
+                peticion,
+                List.of());
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ProblemDetail recursoNoEncontrado(
+            NoResourceFoundException ex,
+            HttpServletRequest peticion) {
+
+        return construir(
+                HttpStatus.NOT_FOUND,
+                "No se ha encontrado el recurso solicitado",
                 peticion,
                 List.of());
     }
@@ -79,6 +94,30 @@ public class ManejadorDeErrores {
                 List.of());
     }
 
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ProblemDetail metodoNoPermitido(
+            HttpRequestMethodNotSupportedException ex,
+            HttpServletRequest peticion) {
+
+        return construir(
+                HttpStatus.METHOD_NOT_ALLOWED,
+                "El método HTTP utilizado no está permitido para este recurso",
+                peticion,
+                List.of());
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ProblemDetail tipoContenidoNoAdmitido(
+            HttpMediaTypeNotSupportedException ex,
+            HttpServletRequest peticion) {
+
+        return construir(
+                HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                "El tipo de contenido enviado no está admitido",
+                peticion,
+                List.of());
+    }
+
     @ExceptionHandler(Exception.class)
     public ProblemDetail inesperado(
             Exception ex,
@@ -107,7 +146,6 @@ public class ManejadorDeErrores {
 
         problema.setTitle(estado.getReasonPhrase());
         problema.setInstance(URI.create(peticion.getRequestURI()));
-
         problema.setProperty("momento", LocalDateTime.now());
 
         if (!campos.isEmpty()) {

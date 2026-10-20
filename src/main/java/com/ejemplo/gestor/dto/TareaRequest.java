@@ -14,7 +14,7 @@ public class TareaRequest {
     private String titulo;
 
     @NotNull(message = "Hay que asignar una prioridad")
-    @Pattern(regexp = "baja|media|alta", message = "La prioridad tiene que serbaja, media o alta")
+    @Pattern(regexp = "baja|media|alta", message = "La prioridad tiene que ser baja, media o alta")
     private String prioridad;
 
     @NotNull(message = "Todas las tareas deben pertenecer a un proyecto")
