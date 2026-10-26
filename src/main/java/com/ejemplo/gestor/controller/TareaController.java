@@ -1,4 +1,3 @@
-
 package com.ejemplo.gestor.controller;
 
 import java.net.URI;
@@ -20,11 +19,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.ejemplo.gestor.dto.TareaPatchRequest;
 import com.ejemplo.gestor.dto.TareaRequest;
 import com.ejemplo.gestor.dto.TareaResponse;
-import com.ejemplo.gestor.error.RecursoNoEncontradoException;
 import com.ejemplo.gestor.mapper.TareaMapper;
-import com.ejemplo.gestor.memoria.MemoriaProyecto;
-import com.ejemplo.gestor.model.Proyecto;
 import com.ejemplo.gestor.model.Tarea;
+import com.ejemplo.gestor.service.TareaService;
 
 import jakarta.validation.Valid;
 
@@ -32,37 +29,14 @@ import jakarta.validation.Valid;
 @RequestMapping
 public class TareaController {
 
-    private final List<Tarea> tareas;
-    private final List<Proyecto> proyectos;
+    private final TareaService tareaService;
     private final TareaMapper tareaMapper;
-    private int siguienteId = 1;
 
     public TareaController(
-            MemoriaProyecto memoria,
+            TareaService tareaService,
             TareaMapper tareaMapper) {
-        this.tareas = memoria.getTareas();
-        this.proyectos = memoria.getProyectos();
+        this.tareaService = tareaService;
         this.tareaMapper = tareaMapper;
-    }
-
-    private Tarea buscar(int id) {
-        for (Tarea tarea : tareas) {
-            if (tarea.getId() == id) {
-                return tarea;
-            }
-        }
-
-        return null;
-    }
-
-    private Proyecto buscarProyecto(int id) {
-        for (Proyecto proyecto : proyectos) {
-            if (proyecto.getId() == id) {
-                return proyecto;
-            }
-        }
-
-        return null;
     }
 
     @GetMapping("/tareas")
@@ -71,13 +45,8 @@ public class TareaController {
             @RequestParam(name = "prioridad", required = false) String prioridad,
             @RequestParam(name = "proyectoId", required = false) Integer proyectoId) {
 
-        return tareas.stream()
-                .filter(tarea -> completada == null
-                        || tarea.isCompletada() == completada)
-                .filter(tarea -> prioridad == null
-                        || tarea.getPrioridad().equalsIgnoreCase(prioridad))
-                .filter(tarea -> proyectoId == null
-                        || tarea.getProyectoId() == proyectoId)
+        return tareaService.listar(completada, prioridad, proyectoId)
+                .stream()
                 .map(tareaMapper::aResponse)
                 .toList();
     }
@@ -86,13 +55,7 @@ public class TareaController {
     public TareaResponse detalle(
             @PathVariable(name = "id") int id) {
 
-        Tarea tarea = buscar(id);
-
-        if (tarea == null) {
-            throw new RecursoNoEncontradoException("tarea", id);
-        }
-
-        return tareaMapper.aResponse(tarea);
+        return tareaMapper.aResponse(tareaService.buscarPorId(id));
     }
 
     @PostMapping(
@@ -102,23 +65,7 @@ public class TareaController {
     public ResponseEntity<TareaResponse> crear(
             @Valid @RequestBody TareaRequest peticion) {
 
-        if (buscarProyecto(peticion.getProyectoId()) == null) {
-            throw new RecursoNoEncontradoException(
-                    "proyecto", peticion.getProyectoId());
-        }
-
-        Tarea tarea = new Tarea();
-        tarea.setTitulo(peticion.getTitulo());
-        tarea.setPrioridad(peticion.getPrioridad());
-        tarea.setProyectoId(peticion.getProyectoId());
-
-        if (peticion.getCompletada() != null) {
-            tarea.setCompletada(peticion.getCompletada());
-        }
-
-        tarea.setId(siguienteId);
-        siguienteId = siguienteId + 1;
-        tareas.add(tarea);
+        Tarea tarea = tareaService.crear(peticion);
 
         URI ubicacion = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -135,31 +82,8 @@ public class TareaController {
             @PathVariable(name = "id") int id,
             @Valid @RequestBody TareaRequest peticion) {
 
-        Tarea existente = buscar(id);
-
-        if (existente == null) {
-            throw new RecursoNoEncontradoException("tarea", id);
-        }
-
-        if (buscarProyecto(peticion.getProyectoId()) == null) {
-            throw new RecursoNoEncontradoException(
-                    "proyecto", peticion.getProyectoId());
-        }
-
-        Tarea cambios = new Tarea();
-        cambios.setId(id);
-        cambios.setTitulo(peticion.getTitulo());
-        cambios.setPrioridad(peticion.getPrioridad());
-        cambios.setProyectoId(peticion.getProyectoId());
-
-        if (peticion.getCompletada() != null) {
-            cambios.setCompletada(peticion.getCompletada());
-        }
-
-        int indice = tareas.indexOf(existente);
-        tareas.set(indice, cambios);
-
-        return tareaMapper.aResponse(cambios);
+        return tareaMapper.aResponse(
+                tareaService.reemplazar(id, peticion));
     }
 
     @PatchMapping("/tareas/{id}")
@@ -167,21 +91,8 @@ public class TareaController {
             @PathVariable(name = "id") int id,
             @Valid @RequestBody TareaPatchRequest cambios) {
 
-        Tarea tarea = buscar(id);
-
-        if (tarea == null) {
-            throw new RecursoNoEncontradoException("tarea", id);
-        }
-
-        if (cambios.getTitulo() != null) {
-            tarea.setTitulo(cambios.getTitulo());
-        }
-
-        if (cambios.getPrioridad() != null) {
-            tarea.setPrioridad(cambios.getPrioridad());
-        }
-
-        return tareaMapper.aResponse(tarea);
+        return tareaMapper.aResponse(
+                tareaService.modificar(id, cambios));
     }
 
     @PostMapping(
@@ -192,23 +103,7 @@ public class TareaController {
             @PathVariable(name = "proyectoId") int proyectoId,
             @Valid @RequestBody TareaRequest peticion) {
 
-        if (buscarProyecto(proyectoId) == null) {
-            throw new RecursoNoEncontradoException(
-                    "proyecto", proyectoId);
-        }
-
-        Tarea nueva = new Tarea();
-        nueva.setTitulo(peticion.getTitulo());
-        nueva.setPrioridad(peticion.getPrioridad());
-        nueva.setProyectoId(proyectoId);
-
-        if (peticion.getCompletada() != null) {
-            nueva.setCompletada(peticion.getCompletada());
-        }
-
-        nueva.setId(siguienteId);
-        siguienteId = siguienteId + 1;
-        tareas.add(nueva);
+        Tarea nueva = tareaService.crearEnProyecto(proyectoId, peticion);
 
         URI ubicacion = ServletUriComponentsBuilder
                 .fromCurrentContextPath()
@@ -224,13 +119,7 @@ public class TareaController {
     public ResponseEntity<Void> eliminar(
             @PathVariable(name = "id") int id) {
 
-        Tarea tarea = buscar(id);
-
-        if (tarea == null) {
-            throw new RecursoNoEncontradoException("tarea", id);
-        }
-
-        tareas.remove(tarea);
+        tareaService.eliminar(id);
 
         return ResponseEntity.noContent().build();
     }
