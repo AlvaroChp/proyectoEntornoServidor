@@ -47,3 +47,16 @@ Las respuestas identifican el recurso inexistente o explican el conflicto por no
 Las pruebas realizadas confirman el funcionamiento de los errores HTTP comprobados, la validación de campos, la validación personalizada de fechas y el conflicto por nombre duplicado.
 
 **Pendiente de comprobar:** el formato de los errores internos `500` mediante una prueba específica y cualquier otro caso que todavía no se haya verificado expresamente.
+
+### Pruebas de filtros opcionales
+
+Se han comprobado los filtros de los listados mediante peticiones HTTP a la API.
+
+- `GET /proyectos?activo=true`: devuelve el proyecto activo creado para la prueba (`200 OK`).
+- `GET /proyectos?activo=false`: devuelve una lista vacía (`200 OK`).
+- `GET /tareas?completada=false`: devuelve la tarea pendiente (`200 OK`).
+- `GET /tareas?completada=true`: devuelve una lista vacía (`200 OK`).
+- `GET /tareas?prioridad=alta`: devuelve la tarea con prioridad alta (`200 OK`).
+- `GET /tareas?proyectoId=1`: devuelve la tarea asociada al proyecto 1 (`200 OK`).
+
+**Resultado:** los seis casos comprobados han devuelto los resultados esperados.

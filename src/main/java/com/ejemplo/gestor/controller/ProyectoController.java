@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -71,8 +72,11 @@ public class ProyectoController {
     }
 
     @GetMapping
-    public List<ProyectoResponse> lista() {
+    public List<ProyectoResponse> lista(
+            @RequestParam(name = "activo", required = false) Boolean activo) {
+
         return proyectos.stream()
+                .filter(proyecto -> activo == null || proyecto.isActivo() == activo)
                 .map(proyectoMapper::aResponse)
                 .toList();
     }

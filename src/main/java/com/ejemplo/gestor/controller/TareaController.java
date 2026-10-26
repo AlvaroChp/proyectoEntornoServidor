@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -65,8 +66,18 @@ public class TareaController {
     }
 
     @GetMapping("/tareas")
-    public List<TareaResponse> lista() {
+    public List<TareaResponse> lista(
+            @RequestParam(name = "completada", required = false) Boolean completada,
+            @RequestParam(name = "prioridad", required = false) String prioridad,
+            @RequestParam(name = "proyectoId", required = false) Integer proyectoId) {
+
         return tareas.stream()
+                .filter(tarea -> completada == null
+                        || tarea.isCompletada() == completada)
+                .filter(tarea -> prioridad == null
+                        || tarea.getPrioridad().equalsIgnoreCase(prioridad))
+                .filter(tarea -> proyectoId == null
+                        || tarea.getProyectoId() == proyectoId)
                 .map(tareaMapper::aResponse)
                 .toList();
     }

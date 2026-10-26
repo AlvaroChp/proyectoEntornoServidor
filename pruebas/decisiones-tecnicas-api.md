@@ -6,7 +6,11 @@
 
 He utilizado DTO para definir los datos que recibe y devuelve la API, en lugar de utilizar directamente las clases del modelo. También he creado mappers para convertir los modelos en sus correspondientes respuestas.
 
-De esta forma, la estructura de las respuestas no depende directamente de cómo están implementadas las clases internas. Además, se evita exponer información interna que no necesita conocer el cliente.
+En `ProyectoRequest` no incluyo el identificador del proyecto, porque lo gestiona la API. En cambio, `TareaRequest` incluye `proyectoId`, ya que es necesario indicar a qué proyecto pertenece la tarea.
+
+Los DTO de respuesta tienen los campos que necesita conocer el cliente. `ProyectoResponse` incluye el identificador, el nombre, la descripción, el estado, el número de incidencias y las fechas. `TareaResponse` incluye el identificador, el título, la prioridad, el estado de finalización y el identificador del proyecto.
+
+Esta separación permite controlar qué datos se reciben y se publican, sin exponer directamente las clases internas del modelo.
 
 ## 2. Validación personalizada
 
